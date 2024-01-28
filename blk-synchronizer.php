@@ -13,7 +13,9 @@
  */
 
 define( 'BLK_SYNCHRONIZER_PATH', plugin_dir_path( __FILE__ ) );
-define( 'BLK_SYNCHRONIZER_URL', plugin_dir_url( __FILE__ ) );
+define( 'BLK_SYNCHRONIZER_LOGS_PATH', WP_CONTENT_DIR . '/uploads/blk-logs/' );
+define( 'BLK_SYNCHRONIZER_LOGS_URL', content_url( '/uploads/blk-logs/' ) );
+
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 require_once BLK_SYNCHRONIZER_PATH . 'classes/BlkSynchronizer.php';

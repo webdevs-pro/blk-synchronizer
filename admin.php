@@ -202,14 +202,13 @@ class BlkSettingsPage {
 			});
 		</script>
 		<?php
-
-		$log_directory = BLK_SYNCHRONIZER_PATH . 'logs/';
+		$log_directory = BLK_SYNCHRONIZER_LOGS_PATH;
 		$sorted_files = $this->get_sorted_log_files( $log_directory );
 
 		echo '<div class="blk-log-wrapper">';
 			echo '<select id="blk-log-file-select">';
 			foreach ( $sorted_files as $file ) {
-				echo '<option value="' . $file . '">' . $file . '</option>';
+				echo '<option value="' . esc_attr( $file ) . '">' . esc_html( $file ) . '</option>';
 			}
 			echo '</select>';
 			echo '&nbsp;&nbsp;<a href="#" id="blk-log-reload">Reload</a><br>';
@@ -238,32 +237,33 @@ class BlkSettingsPage {
 			jQuery(document).ready(function($) {
 				// Function to load log file content
 				function loadLogFile(filePath) {
-					$.get(filePath, function(data) {
-						$('#blk-log').text(data).scrollTop($('#blk-log')[0].scrollHeight);
-					});
+						$.get(filePath, function(data) {
+							$('#blk-log').text(data).scrollTop($('#blk-log')[0].scrollHeight);
+						});
 				}
 
 				var currentFile = $('#blk-log-file-select').val();
-				var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_URL . '/logs/' ); ?>' + currentFile;
+				var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_LOGS_URL ); ?>' + currentFile;
 				loadLogFile(logFilePath);
 
 				// Handle change event for the log file selection
 				$('#blk-log-file-select').change(function() {
-					var selectedFile = $(this).val();
-					var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_URL . '/logs/' ); ?>' + selectedFile;
-					loadLogFile(logFilePath);
+						var selectedFile = $(this).val();
+						var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_LOGS_URL ); ?>' + selectedFile;
+						loadLogFile(logFilePath);
 				});
 
 				// Handle click event for the "Reload" link
 				$('#blk-log-reload').click(function(e) {
-					e.preventDefault();
-					var currentFile = $('#blk-log-file-select').val();
-					var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_URL . '/logs/' ); ?>' + currentFile;
-					loadLogFile(logFilePath);
+						e.preventDefault();
+						var currentFile = $('#blk-log-file-select').val();
+						var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_LOGS_URL ); ?>' + currentFile;
+						loadLogFile(logFilePath);
 				});
 			});
 		</script>
 		<?php
+
 
 	}
 
