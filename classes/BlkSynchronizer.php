@@ -61,7 +61,7 @@ class BlkSynchronizer {
         $this->add_new_products( $products_to_add );
 
         $end_time_2 = microtime( true );
-        $time_2 = number_format( ( $end_time_2 - $start_time ), 5 );
+        $time_2 = number_format( ( $end_time_2 - $start_time ), 1 );
         // error_log( "time 2\n" . print_r( $time_2, true ) . "\n" );
         
 
@@ -542,8 +542,21 @@ class BlkSynchronizer {
     }
 
     function convert_to_html_entities( $text ) {
-        return htmlentities( $text, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+        return $this->toUnicodeEscapeSequence( $text );
 
+    }
+
+    function toUnicodeEscapeSequence( $string ) {
+        $escapedString = '';
+        for ( $i = 0; $i < mb_strlen($string, 'UTF-8'); $i++ ) {
+            $char = mb_substr($string, $i, 1, 'UTF-8');
+            if (strlen($char) > 1) { // Multi-byte character
+                $escapedString .= sprintf("\\u%04x", mb_ord($char, 'UTF-8'));
+            } else {
+                $escapedString .= $char;
+            }
+        }
+        return $escapedString;
     }
 
 }
