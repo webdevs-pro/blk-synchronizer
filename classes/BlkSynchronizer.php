@@ -23,7 +23,7 @@ class BlkSynchronizer {
 
         blk_create_import_lock();
 
-        // $start_time = microtime( true );
+        $start_time = microtime( true );
 
         $this->products_to_json();
 
@@ -52,22 +52,22 @@ class BlkSynchronizer {
         blk_debug_log( 'Products to remove: ' . count( $products_to_delete ) );
         blk_debug_log( 'Products to update: ' . count( $products_to_update ) );
 
-        error_log( "products_to_add\n" . print_r( $products_to_add, true ) . "\n" );
-        error_log( "products_to_delete\n" . print_r( $products_to_delete, true ) . "\n" );
+        // error_log( "products_to_add\n" . print_r( $products_to_add, true ) . "\n" );
+        // error_log( "products_to_delete\n" . print_r( $products_to_delete, true ) . "\n" );
         // error_log( "products_to_update\n" . print_r( $products_to_update, true ) . "\n" );
 
         $this->remove_products( $products_to_delete );
         $this->update_products( $products_to_update );
         $this->add_new_products( $products_to_add );
 
-        // $end_time_2 = microtime( true );
-        // $time_2 = number_format( ( $end_time_2 - $start_time ), 5 );
+        $end_time_2 = microtime( true );
+        $time_2 = number_format( ( $end_time_2 - $start_time ), 5 );
         // error_log( "time 2\n" . print_r( $time_2, true ) . "\n" );
         
 
         blk_remove_import_lock();
 
-        blk_debug_log( 'Finish.\n' );
+        blk_debug_log( "Done in " . $time_2 . "s.\n" );
 
     }
 

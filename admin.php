@@ -231,15 +231,16 @@ class BlkSettingsPage {
 				height: 400px;
 				overflow-y: auto;
 				border: 1px solid #ccc;
+				overscroll-behavior: contain;
 			}
 		</style>
 		<script>
 			jQuery(document).ready(function($) {
 				// Function to load log file content
 				function loadLogFile(filePath) {
-						$.get(filePath, function(data) {
-							$('#blk-log').text(data).scrollTop($('#blk-log')[0].scrollHeight);
-						});
+					$.get(filePath, function(data) {
+						$('#blk-log').text(data).scrollTop($('#blk-log')[0].scrollHeight);
+					});
 				}
 
 				var currentFile = $('#blk-log-file-select').val();
@@ -248,17 +249,17 @@ class BlkSettingsPage {
 
 				// Handle change event for the log file selection
 				$('#blk-log-file-select').change(function() {
-						var selectedFile = $(this).val();
-						var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_LOGS_URL ); ?>' + selectedFile;
-						loadLogFile(logFilePath);
+					var selectedFile = $(this).val();
+					var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_LOGS_URL ); ?>' + selectedFile;
+					loadLogFile(logFilePath);
 				});
 
 				// Handle click event for the "Reload" link
 				$('#blk-log-reload').click(function(e) {
-						e.preventDefault();
-						var currentFile = $('#blk-log-file-select').val();
-						var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_LOGS_URL ); ?>' + currentFile;
-						loadLogFile(logFilePath);
+					e.preventDefault();
+					var currentFile = $('#blk-log-file-select').val();
+					var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_LOGS_URL ); ?>' + currentFile;
+					loadLogFile(logFilePath);
 				});
 			});
 		</script>
