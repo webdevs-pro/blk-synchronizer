@@ -7,12 +7,13 @@
  * Plugin Name:   BaseLinker Synchronizer Extended
  * Plugin URI:    https://github.com/webdevs-pro/blk-synchronizer
  * Description:   Synchronization of BaseLinker and WooCommerce
- * Version:       2.4.2
+ * Version:       2.5
  * Author:        Alex Shram & Alex Ishchenko
  * Author URI:    https://afisza.com/
  */
 
 define( 'BLK_SYNCHRONIZER_PATH', plugin_dir_path( __FILE__ ) );
+define( 'BLK_SYNCHRONIZER_URL', plugin_dir_url( __FILE__ ) );
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 require_once BLK_SYNCHRONIZER_PATH . 'classes/BlkSynchronizer.php';

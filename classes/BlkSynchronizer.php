@@ -85,7 +85,11 @@ class BlkSynchronizer {
      */
     public function downloadProducts() {
         $blk = new BaseLinkerHelper();
+        // $categories = $blk->getCategories();
+        // die();
         $products = $blk->getProductsList();
+
+        error_log( "categories\n" . print_r( $categories, true ) . "\n" );
 
         $productIds = array_column( $products, 'product_id' );
 

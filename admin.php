@@ -78,97 +78,217 @@ class BlkSettingsPage {
 	}
 
 	public function settings_page() {
-		$active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'settings';
+		$active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'log';
 		?>
 		<div class="wrap">
 			<h1>BS Synk Settings</h1>
 			<h2 class="nav-tab-wrapper">
-					<a href="?page=bs-settings-page&tab=settings" class="nav-tab <?php echo $active_tab == 'settings' ? 'nav-tab-active' : ''; ?>">Settings</a>
-					<a href="?page=bs-settings-page&tab=log" class="nav-tab <?php echo $active_tab == 'log' ? 'nav-tab-active' : ''; ?>">Log</a>
+				<a href="?page=bs-settings-page&tab=log" class="nav-tab <?php echo $active_tab == 'log' ? 'nav-tab-active' : ''; ?>">Log</a>
+				<a href="?page=bs-settings-page&tab=settings" class="nav-tab <?php echo $active_tab == 'settings' ? 'nav-tab-active' : ''; ?>">Settings</a>
 			</h2>
 
 			<br>
 
-			<?php if ( blk_is_import_locked() ) {
-				echo '<div style=""><img class="wp-spinner" src="/wp-admin/images/spinner.gif" alt="spinner.gif"> <span style="font-weight: bold; font-size: 1.7em;">Import in progress!</span></div><br>';
+			<?php
+			switch ( $active_tab ) {
+				case 'settings':
+					$this->render_settings_tab();
+					break;
 
-				echo '<button id="blk-start-import" class="button button-primary disabled">Start import</button>';
-			} else {
-				echo '<button id="blk-start-import" class="button button-primary">Start import</button>';
-			} ?>
-			<button id="blk-stop-import" class="button button-primary" style="background-color: #dc3232; border-color: #dc3232; color: white;">Stop import</button>
-
-			<script type="text/javascript">
-            jQuery(document).ready(function ($) {
-					document.getElementById('blk-start-import').addEventListener('click', function() {
-						const startButton = this;
-						startButton.classList.add('disabled');
-
-						fetch('/?action=blkSynchronizer&method=synchronize', {
-							method: 'POST',
-							headers: {
-								'Content-Type': 'application/x-www-form-urlencoded',
-							},
-							body: '' // If your POST request needs data
-						})
-						.then(response => {
-							if (!response.ok) {
-									throw new Error('Network response was not ok');
-							}
-							return response.text();
-						})
-						.then(data => {
-							console.log('import complete'); // Handle the response data
-							startButton.classList.remove('disabled');
-						})
-						.catch(error => {
-							console.error('There has been a problem with your fetch operation:', error);
-							startButton.classList.remove('disabled');
-							// Handle errors here
-						});
-					});
-
-
-                $('#blk-stop-import').click(function (e) {
-                    e.preventDefault();
-
-                    var data = {
-                        action: 'blk_stop_import',
-                    };
-
-                    // FETCHING XML
-                    $.ajax({
-                        url: ajaxurl,
-                        type: 'POST',
-                        data: data,
-                        beforeSend: function (xhr) {
-                            $('#blk-stop-import').addClass('disabled');
-                           //  $('#frymo_ajax_result').html('&nbsp;');
-                        },
-                        success: function (response) {
-                            $('#blk-stop-import').removeClass('disabled');
-                           //  $('#frymo_ajax_result').html(response);
-									console.log(response);
-                        }
-                    });
-                });
-            });
-        </script>
-
-			<form action='options.php' method='post'>
-					<?php
-					if ($active_tab == 'settings') {
-						settings_fields('Blk');
-						do_settings_sections('Blk');
-						submit_button();
-					} elseif ($active_tab == 'log') {
-						// Display log content here
-						echo '<p>Log content goes here...</p>';
-					}
-					?>
-			</form>
+				default:
+					$this->render_log_tab();
+					break;
+			}
+			?>
 		</div>
 		<?php
+	}
+
+
+	private function render_settings_tab() {
+		echo '<form action="options.php" method="post">';
+			settings_fields( 'Blk' );
+			do_settings_sections( 'Blk' );
+			submit_button();
+		echo '</form>';
+	}
+
+
+	private function render_log_tab() {
+		if ( blk_is_import_locked() ) {
+			echo '<div style=""><img class="wp-spinner" src="/wp-admin/images/spinner.gif" alt="spinner.gif"> <span style="font-weight: bold; font-size: 1.7em;">Import in progress!</span></div><br>';
+
+			echo '<button id="blk-start-import" class="button button-primary disabled">Start import</button>';
+		} else {
+			echo '<button id="blk-start-import" class="button button-primary">Start import</button>';
+		} ?>
+		<button id="blk-stop-import" class="button button-primary" style="background-color: #dc3232; border-color: #dc3232; color: white;">Stop import</button>
+
+		<script type="text/javascript">
+			jQuery(document).ready(function ($) {
+				// document.getElementById('blk-start-import').addEventListener('click', function() {
+				// 	const startButton = this;
+				// 	startButton.classList.add('disabled');
+
+				// 	fetch('/?action=blkSynchronizer&method=synchronize', {
+				// 		method: 'POST',
+				// 		headers: {
+				// 			'Content-Type': 'application/x-www-form-urlencoded',
+				// 		},
+				// 		body: '' // If your POST request needs data
+				// 	})
+				// 	.then(response => {
+				// 		if (!response.ok) {
+				// 				throw new Error('Network response was not ok');
+				// 		}
+				// 		return response.text();
+				// 	})
+				// 	.then(data => {
+				// 		console.log('import complete'); // Handle the response data
+				// 		startButton.classList.remove('disabled');
+				// 	})
+				// 	.catch(error => {
+				// 		console.error('There has been a problem with your fetch operation:', error);
+				// 		startButton.classList.remove('disabled');
+				// 		// Handle errors here
+				// 	});
+				// });
+
+				$('#blk-start-import').click(function(e) {
+					e.preventDefault();
+
+					var $startButton = $(this);
+					$startButton.addClass('disabled');
+
+					$.ajax({
+						url: '/?action=blkSynchronizer&method=synchronize',
+						type: 'POST',
+						success: function(data) {
+								console.log('import complete'); // Handle the response data
+								$startButton.removeClass('disabled');
+						},
+						error: function(jqXHR, textStatus, errorThrown) {
+								console.error('There has been a problem with your AJAX operation:', textStatus, errorThrown);
+								$startButton.removeClass('disabled');
+								// Handle errors here
+						}
+					});
+				});
+
+
+				$('#blk-stop-import').click(function (e) {
+					e.preventDefault();
+
+					var data = {
+							action: 'blk_stop_import',
+					};
+
+					$.ajax({
+							url: ajaxurl,
+							type: 'POST',
+							data: data,
+							beforeSend: function (xhr) {
+								$('#blk-stop-import').addClass('disabled');
+								//  $('#frymo_ajax_result').html('&nbsp;');
+							},
+							success: function (response) {
+								$('#blk-stop-import').removeClass('disabled');
+								//  $('#frymo_ajax_result').html(response);
+								console.log(response);
+							}
+					});
+				});
+				
+			});
+		</script>
+		<?php
+
+		$log_directory = BLK_SYNCHRONIZER_PATH . 'logs/';
+		$sorted_files = $this->get_sorted_log_files( $log_directory );
+
+		echo '<div class="blk-log-wrapper">';
+			echo '<select id="blk-log-file-select">';
+			foreach ( $sorted_files as $file ) {
+				echo '<option value="' . $file . '">' . $file . '</option>';
+			}
+			echo '</select>';
+			echo '&nbsp;&nbsp;<a href="#" id="blk-log-reload">Reload</a><br>';
+
+			echo '<pre id="blk-log"></pre>';
+
+		echo '</div>';
+
+		?>
+		<style>
+			.wrap .notice {
+				display: none;
+			}
+			.blk-log-wrapper {
+				margin-top: 20px;
+			}
+			#blk-log {
+				background-color: #fff;
+				padding: 10px;
+				height: 400px;
+				overflow-y: auto;
+				border: 1px solid #ccc;
+			}
+		</style>
+		<script>
+			jQuery(document).ready(function($) {
+				// Function to load log file content
+				function loadLogFile(filePath) {
+					$.get(filePath, function(data) {
+						$('#blk-log').text(data).scrollTop($('#blk-log')[0].scrollHeight);
+					});
+				}
+
+				var currentFile = $('#blk-log-file-select').val();
+				var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_URL . '/logs/' ); ?>' + currentFile;
+				loadLogFile(logFilePath);
+
+				// Handle change event for the log file selection
+				$('#blk-log-file-select').change(function() {
+					var selectedFile = $(this).val();
+					var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_URL . '/logs/' ); ?>' + selectedFile;
+					loadLogFile(logFilePath);
+				});
+
+				// Handle click event for the "Reload" link
+				$('#blk-log-reload').click(function(e) {
+					e.preventDefault();
+					var currentFile = $('#blk-log-file-select').val();
+					var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_URL . '/logs/' ); ?>' + currentFile;
+					loadLogFile(logFilePath);
+				});
+			});
+		</script>
+		<?php
+
+	}
+
+
+	private function get_sorted_log_files( $directory ) {
+		$debug_files         = array();
+		$synchronizer_files  = array();
+
+		if ( $handle = opendir( $directory ) ) {
+			while ( false !== ( $entry = readdir( $handle ) ) ) {
+				if ( '.' !== $entry && '..' !== $entry ) {
+						if ( 0 === strpos( $entry, 'debug-' ) ) {
+							$debug_files[] = $entry;
+						} elseif ( 0 === strpos( $entry, 'synchronizer-' ) ) {
+							$synchronizer_files[] = $entry;
+						}
+				}
+			}
+			closedir( $handle );
+		}
+
+		rsort( $debug_files );
+		rsort( $synchronizer_files );
+
+		return array_merge( $debug_files, $synchronizer_files );
 	}
 }
 

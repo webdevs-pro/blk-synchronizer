@@ -29,6 +29,7 @@ class BaseLinkerHelper
 
         $response = json_decode($response, true);
 
+
         if (empty($response['status']) || $response['status'] === 'ERROR') {
             curl_close($curl);
             throw new Exception('ERROR:'. json_encode($response));
@@ -78,5 +79,18 @@ class BaseLinkerHelper
             $lists[] = $result;
         }
         return array_merge(...$lists);
+    }
+
+    /**
+     * @return array
+     * @throws Exception
+     */
+    public function getCategories() {
+        $apiParams = [
+            'method' => 'getInventoryCategories'
+        ];
+        $result = $this->exec($apiParams);
+
+        return $result;
     }
 }
