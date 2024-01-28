@@ -1,0 +1,5 @@
+old-products.json
+new-products.json
+.import-lock
+.import-stop
+/logs/*

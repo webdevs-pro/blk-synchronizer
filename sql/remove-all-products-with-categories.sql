@@ -1,0 +1,18 @@
+DELETE relations.*, taxes.*, terms.*
+FROM wp_term_relationships AS relations
+         INNER JOIN wp_term_taxonomy AS taxes
+                    ON relations.term_taxonomy_id=taxes.term_taxonomy_id
+         INNER JOIN wp_terms AS terms
+                    ON taxes.term_id=terms.term_id
+WHERE object_id IN (SELECT ID FROM wp_posts WHERE post_type='product');
+
+DELETE FROM wp_postmeta WHERE post_id IN (SELECT ID FROM wp_posts WHERE post_type = 'product');
+DELETE FROM wp_posts WHERE post_type = 'product';
+
+DELETE pm FROM wp_postmeta pm LEFT JOIN wp_posts wp ON wp.ID = pm.post_id WHERE wp.ID IS NULL;
+
+DELETE meta FROM wp_termmeta meta LEFT JOIN wp_terms terms ON terms.term_id = meta.term_id WHERE terms.term_id IS NULL;
+
+DELETE FROM wp_woocommerce_attribute_taxonomies;
+
+DELETE FROM wp_woocommerce_sessions;
