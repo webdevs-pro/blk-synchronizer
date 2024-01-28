@@ -67,7 +67,7 @@ class BlkSynchronizer {
 
         blk_remove_import_lock();
 
-        blk_debug_log( 'Finish.' );
+        blk_debug_log( 'Finish.\n' );
 
     }
 
