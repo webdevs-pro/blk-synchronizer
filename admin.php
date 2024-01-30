@@ -219,10 +219,13 @@ class BlkSettingsPage {
 					$('#blk-log-file-select').prop('disabled', true);
 					$('#blk-log-reload').addClass('disabled');
 					$('#blk-log-reload').blur();
-					$.get(filePath, function(data) {
-						console.log('data', data);
+
+					// Append a timestamp to the file path to prevent caching
+					var cacheBuster = "?t=" + new Date().getTime();
+					$.get(filePath + cacheBuster, function(data) {
 						$('#blk-log').text(data).scrollTop($('#blk-log')[0].scrollHeight);
 					});
+
 					setTimeout(function() {
 						$('#blk-log-file-select').prop('disabled', false);
 						$('#blk-log-reload').removeClass('disabled');
