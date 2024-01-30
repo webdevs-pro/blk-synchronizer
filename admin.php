@@ -8,8 +8,8 @@ class BlkSettingsPage {
 
 	public function add_admin_menu() {
 		add_menu_page(
-			'BS Synk', 
-			'BS Synk', 
+			'BL Synk', 
+			'BL Synk', 
 			'manage_options', 
 			'bs-settings-page', 
 			array($this, 'settings_page')
@@ -126,33 +126,6 @@ class BlkSettingsPage {
 
 		<script type="text/javascript">
 			jQuery(document).ready(function ($) {
-				// document.getElementById('blk-start-import').addEventListener('click', function() {
-				// 	const startButton = this;
-				// 	startButton.classList.add('disabled');
-
-				// 	fetch('/?action=blkSynchronizer&method=synchronize', {
-				// 		method: 'POST',
-				// 		headers: {
-				// 			'Content-Type': 'application/x-www-form-urlencoded',
-				// 		},
-				// 		body: '' // If your POST request needs data
-				// 	})
-				// 	.then(response => {
-				// 		if (!response.ok) {
-				// 				throw new Error('Network response was not ok');
-				// 		}
-				// 		return response.text();
-				// 	})
-				// 	.then(data => {
-				// 		console.log('import complete'); // Handle the response data
-				// 		startButton.classList.remove('disabled');
-				// 	})
-				// 	.catch(error => {
-				// 		console.error('There has been a problem with your fetch operation:', error);
-				// 		startButton.classList.remove('disabled');
-				// 		// Handle errors here
-				// 	});
-				// });
 
 				$('#blk-start-import').click(function(e) {
 					e.preventDefault();
@@ -233,14 +206,27 @@ class BlkSettingsPage {
 				border: 1px solid #ccc;
 				overscroll-behavior: contain;
 			}
+			#blk-log-reload.disabled {
+				color: gray;        /* Change the text color to gray or any other color */
+				pointer-events: none; /* This prevents the link from being clickable */
+				cursor: default; 
+			}
 		</style>
 		<script>
 			jQuery(document).ready(function($) {
 				// Function to load log file content
 				function loadLogFile(filePath) {
+					$('#blk-log-file-select').prop('disabled', true);
+					$('#blk-log-reload').addClass('disabled');
+					$('#blk-log-reload').blur();
 					$.get(filePath, function(data) {
+						console.log('data', data);
 						$('#blk-log').text(data).scrollTop($('#blk-log')[0].scrollHeight);
 					});
+					setTimeout(function() {
+						$('#blk-log-file-select').prop('disabled', false);
+						$('#blk-log-reload').removeClass('disabled');
+					}, 500);
 				}
 
 				var currentFile = $('#blk-log-file-select').val();
