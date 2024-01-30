@@ -89,7 +89,7 @@ class BlkSynchronizer {
         // die();
         $products = $blk->getProductsList();
 
-        error_log( "categories\n" . print_r( $categories, true ) . "\n" );
+        // error_log( "categories\n" . print_r( $categories, true ) . "\n" );
 
         $productIds = array_column( $products, 'product_id' );
 
@@ -108,20 +108,7 @@ class BlkSynchronizer {
     }
 
 
-    // function products_added( $old_array, $new_array ) {
-    //     $old_ids = array_column( $old_array, 'product_id' );
-    //     $added = array_filter( $new_array, function ( $product ) use ( $old_ids ) {
-    //         return ! in_array( $product['product_id'], $old_ids );
-    //     } );
 
-    //     foreach ( $added as $index => $blk_product ) {
-    //         if ( $this->check_for_skip( $blk_product ) ) {
-    //             unset( $added[ $index ] );
-    //         }
-    //     }
-    
-    //     return array_values( $added ); // Re-indexing array
-    // }
 
     function products_added( $old_array, $new_array ) {
         $old_ids = array_column( $old_array, 'product_id' );
@@ -141,13 +128,6 @@ class BlkSynchronizer {
     
         return array_values( $removed_products ); // Re-indexing array
     }
-
-
-
-
-
-
-
 
 
 
@@ -218,75 +198,6 @@ class BlkSynchronizer {
     }
 
 
-    
-
-    // function arrays_are_different_by_keys( $array1, $array2, $keys ) {
-    //     foreach ( $keys as $key ) {
-    //         if ( ( isset( $array1[ $key ] ) || isset( $array2[ $key ] ) ) && $array1[ $key ] !== $array2[ $key ] ) {
-    //             error_log( "sku\n" . print_r( $array2['sku'], true ) . "\n" );
-    //             error_log( "key\n" . print_r( $key, true ) . "\n" );
-    //             error_log( "old\n" . print_r( $array1[$key], true ) . "\n" );
-    //             error_log( "new\n" . print_r( $array2[$key], true ) . "\n\n\n" );
-    //             return true;
-    //         }
-    //     }
-    //     return false;
-    // }
-    
-    // function products_changed( $old_array, $new_array ) {
-    //     $keys = array(
-    //         // 'ean',
-    //         'sku',
-    //         'name',
-    //         'quantity',
-    //         // 'price_netto',
-    //         'price_brutto',
-    //         // 'price_wholesale_netto',
-    //         // 'tax_rate',
-    //         'weight',
-    //         'images',
-    //         // 'description',
-    //     );
-
-    //     $changed_products = [];
-    //     foreach ( $new_array as $new_product ) {
-    //         foreach ( $old_array as $old_product ) {
-    //             if ( $new_product['product_id'] == $old_product['product_id'] && $this->arrays_are_different_by_keys( $new_product, $old_product, $keys ) ) {
-    //                 $changed_products[] = $new_product;
-    //                 break;
-    //             }
-    //         }
-    //     }
-    
-    //     return $changed_products;
-    // }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     function find_added_products( $old_products, $new_products ) {
@@ -315,19 +226,34 @@ class BlkSynchronizer {
             // 'tax_rate',
             'weight',
             'images',
-            // 'description',
+            'description',
         );
         $updated_products = [];
         foreach ( $new_products as $new_product ) {
             foreach ( $old_products as $old_product ) {
                 if ( $new_product['sku'] === $old_product['sku'] ) {
                     foreach ( $keys as $key ) {
-                        if ( $new_product[$key] !== $old_product[$key] ) {
+                        // Fix for backslashes
+                        if ( $key == 'description' || $key == 'name' ) {
+                            if ( $old_product[ $key ] !== null ) {
+                                $old_product[ $key ] = str_replace('\\', '', $old_product[ $key ] );
+                            }
+
+                            if ( $new_product[ $key ] !== null ) {
+                                $new_product[ $key ] = str_replace('\\', '', $new_product[ $key ] );
+                            }
+                        }
+                        if ( $new_product[ $key ] !== $old_product[ $key ] ) {
                             $updated_products[] = $new_product;
-                            error_log( "sku: " . print_r( $new_product['sku'], true ) );
-                            error_log( "key: " . print_r( $key, true ) );
-                            error_log( "old: " . print_r( $old_product[$key], true ) );
-                            error_log( "new: " . print_r( $new_product[$key], true ) . "\n\n" );
+                            // error_log( "sku: " . print_r( $new_product['sku'], true ) );
+                            // error_log( "key: " . print_r( $key, true ) );
+                            // error_log( "old: " . print_r( $old_product[$key], true ) );
+                            // error_log( "new: " . print_r( $new_product[$key], true ) . "\n\n" );
+                            blk_synk_log( "sku: " . print_r( $new_product['sku'], true ), $this->synk_log_file_date );
+                            blk_synk_log( "key: " . print_r( $key, true ), $this->synk_log_file_date );
+                            blk_synk_log( "old: " . print_r( $old_product[$key], true ), $this->synk_log_file_date );
+                            blk_synk_log( "new: " . print_r( $new_product[$key], true ) . "\n", $this->synk_log_file_date );
+
                             break;
                         }
                     }
@@ -336,36 +262,6 @@ class BlkSynchronizer {
         }
         return $updated_products;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -451,10 +347,8 @@ class BlkSynchronizer {
             $wc_product_id = $wcProduct->get_id();
             
             if ( $this->check_for_skip( $blk_product ) ) {
-                file_put_contents( BLK_SYNCHRONIZER_PATH . 'logs/debug.log', date_i18n('Y-m-d H:i:s') . " Product $blk_product_sku deleted. It was in ignore list..\n", FILE_APPEND );
-
                 wp_delete_post( $wc_product_id, true );
-                blk_debug_log( 'Product ' . $blk_product_sku . ' deleted. It was in ignore list.' );
+                blk_debug_log( 'Product ' . $blk_product_sku . ' deleted. It is on the ignore list.' );
                 continue;
             }
 
@@ -522,41 +416,38 @@ class BlkSynchronizer {
                 'images' => get_post_meta( $product->get_id(), 'blk_images', true ),
                 'features' => [], // Modify as needed
                 'variants' => [], // Modify as needed
-                'description' => $this->convert_to_html_entities($product->get_description()),
+                // 'description' => $product->get_description(),
+                'description' => html_entity_decode( $product->get_description(), ENT_HTML5, 'UTF-8' ),
                 'description_extra1' => null, // Modify as needed
                 'description_extra2' => null, // Modify as needed
                 'description_extra3' => null, // Modify as needed
                 'description_extra4' => null, // Modify as needed
             ];
+
+
+
+            $description = $product->get_description(); // Get the description from your product
+            if ( ! $description ) {
+                // Fix "" for description. If empty it should be null
+                $formatted_product['description'] = null;
+            } else {
+                $formatted_product['description'] = preg_replace_callback( '/&#x[a-fA-F0-9]+;/u', function( $matches ) {
+                    return html_entity_decode($matches[0], ENT_HTML5, 'UTF-8');
+                }, $description );
+            }
     
             $formatted_products[] = $formatted_product;
         }
     
         // Sort the products array by product_id
-        usort($formatted_products, function($a, $b) {
+        usort( $formatted_products, function( $a, $b ) {
             return $a['product_id'] - $b['product_id'];
-        });
+        } );
     
-        $json_data = json_encode($formatted_products);
+        $json_data = json_encode( $formatted_products, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT );
         file_put_contents( BLK_SYNCHRONIZER_PATH . 'old-products.json', $json_data );
     }
 
-    function convert_to_html_entities( $text ) {
-        return $this->toUnicodeEscapeSequence( $text );
 
-    }
-
-    function toUnicodeEscapeSequence( $string ) {
-        $escapedString = '';
-        for ( $i = 0; $i < mb_strlen($string, 'UTF-8'); $i++ ) {
-            $char = mb_substr($string, $i, 1, 'UTF-8');
-            if (strlen($char) > 1) { // Multi-byte character
-                $escapedString .= sprintf("\\u%04x", mb_ord($char, 'UTF-8'));
-            } else {
-                $escapedString .= $char;
-            }
-        }
-        return $escapedString;
-    }
 
 }
