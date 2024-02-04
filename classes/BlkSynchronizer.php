@@ -11,6 +11,12 @@ class BlkSynchronizer {
      */
     public function startSynchronize() {
 
+        $max_execution_time = ini_get('max_execution_time');
+        blk_error_log( $max_execution_time );
+
+
+        set_time_limit( 0 );
+
         $this->synk_log_file_date = date_i18n('Y-m-d-H-i-s');
 
         blk_debug_log( 'Start.' );
@@ -389,39 +395,64 @@ class BlkSynchronizer {
 
 
     private function products_to_json() {
-        $args = [
-            'limit' => -1, // Retrieve all products
-            'status' => 'publish', // Get only published products
-        ];
+        // $args = [
+        //     'limit' => -1, // Retrieve all products
+        //     'status' => 'publish', // Get only published products
+        // ];
     
-        $query = new WC_Product_Query($args);
-        $products = $query->get_products();
+        // $query = new WC_Product_Query($args);
+        // $products = $query->get_products();
+
         $formatted_products = [];
+
+        $per_page = 100;
+        $page = 1; 
+        $products = [];
+        
+        do {
+            $args = [
+                'limit'  => $per_page,
+                'status' => 'publish',
+                'page'   => $page,
+            ];
+        
+            $query = new WC_Product_Query($args);
+            $current_iteraction_products = $query->get_products();
+        
+            if ( ! empty( $current_iteraction_products ) ) {
+                $products = array_merge( $products, $current_iteraction_products );
+                $page++;
+            } else {
+                break; // Exit loop if no products are found
+            }
+
+            blk_error_log( 'boom' );
+
+        } while ( true );
     
         foreach ($products as $product) {
             $formatted_product = [
-                'product_id' => intval( $product->get_meta('blk_product_id') ),
-                'ean' => $product->get_sku(),
+                // 'product_id' => intval( $product->get_meta('blk_product_id') ),
+                // 'ean' => $product->get_sku(),
                 'sku' => $product->get_sku(),
                 'name' => $product->get_name(),
                 'quantity' => $product->get_stock_quantity(),
-                'price_netto' => wc_get_price_excluding_tax($product),
+                // 'price_netto' => wc_get_price_excluding_tax($product),
                 'price_brutto' => wc_get_price_including_tax($product),
-                'price_wholesale_netto' => 0, // Modify as needed
-                'tax_rate' => $product->get_tax_class(),
+                // 'price_wholesale_netto' => 0, // Modify as needed
+                // 'tax_rate' => $product->get_tax_class(),
                 'weight' => floatval( $product->get_weight() ),
-                'man_name' => '', // Modify as needed
-                'man_image' => null, // Modify as needed
-                'category_id' => current($product->get_category_ids()),
+                // 'man_name' => '', // Modify as needed
+                // 'man_image' => null, // Modify as needed
+                // 'category_id' => current($product->get_category_ids()),
                 'images' => get_post_meta( $product->get_id(), 'blk_images', true ),
-                'features' => [], // Modify as needed
-                'variants' => [], // Modify as needed
-                // 'description' => $product->get_description(),
+                // 'features' => [], // Modify as needed
+                // 'variants' => [], // Modify as needed
                 'description' => html_entity_decode( $product->get_description(), ENT_HTML5, 'UTF-8' ),
-                'description_extra1' => null, // Modify as needed
-                'description_extra2' => null, // Modify as needed
-                'description_extra3' => null, // Modify as needed
-                'description_extra4' => null, // Modify as needed
+                // 'description_extra1' => null, // Modify as needed
+                // 'description_extra2' => null, // Modify as needed
+                // 'description_extra3' => null, // Modify as needed
+                // 'description_extra4' => null, // Modify as needed
             ];
 
 

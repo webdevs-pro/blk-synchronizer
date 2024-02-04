@@ -7,7 +7,7 @@
  * Plugin Name:   BaseLinker Synchronizer Extended
  * Plugin URI:    https://github.com/webdevs-pro/blk-synchronizer
  * Description:   Synchronization of BaseLinker and WooCommerce
- * Version:       2.6.2
+ * Version:       2.7
  * Author:        Alex Shram & Alex Ishchenko
  * Author URI:    https://afisza.com/
  */
@@ -32,14 +32,29 @@ if (class_exists(BlkSynchronizer::class)) {
 }
 
 /**
- * Checks if the import lock file exists.
+ * Checks if the import lock file exists and removes it if older than 30 minutes.
  *
- * @return bool True if the lock file exists, false otherwise.
+ * @return bool True if the lock file exists and is not older than 30 minutes, false otherwise.
  */
 function blk_is_import_locked() {
     $lock_file = plugin_dir_path(__FILE__) . '.import-lock';
 
-    return file_exists($lock_file);
+    if (file_exists($lock_file)) {
+        // Check if the file is older than 30 minutes
+        $file_time = filemtime($lock_file);
+        $current_time = time();
+        $time_diff = $current_time - $file_time;
+
+        if ($time_diff > 600) { // 1800 seconds = 30 minutes
+            // Remove the lock file if it's older than 30 minutes
+            unlink($lock_file);
+            return false; // The lock file was too old and has been removed
+        }
+
+        return true; // The lock file exists and is not too old
+    }
+
+    return false; // The lock file does not exist
 }
 
 /**
@@ -65,14 +80,27 @@ function blk_remove_import_lock() {
 }
 
 /**
- * Checks if the import stop file exists.
+ * Checks if the import stop file exists and is not older than 30 minutes.
+ * If the file is older, it removes the stop file.
  *
- * @return bool True if the lock file exists, false otherwise.
+ * @return bool True if the stop file exists and is within the time limit, false otherwise.
  */
 function blk_is_stop_import() {
-    $lock_file = plugin_dir_path(__FILE__) . '.import-stop';
+    $stop_file = plugin_dir_path(__FILE__) . '.import-stop';
 
-    return file_exists($lock_file);
+    if (file_exists($stop_file)) {
+        // Check if the file is older than 30 minutes
+        $file_time = filemtime($stop_file);
+        $current_time = time();
+        if (($current_time - $file_time) > 600) { // 1800 seconds = 30 minutes
+            // Remove the stop file if it's older than 30 minutes
+            unlink($stop_file);
+            return false;
+        }
+        return true;
+    }
+
+    return false;
 }
 
 /**
