@@ -47,6 +47,27 @@ class BlkSettingsPage {
 			'Blk', 
 			'blk_import_section'
 		);
+		add_settings_field(
+			'blk_lock_file_max_lifetime', 
+			'Lock file max lifetime', 
+			array( $this, 'blk_lock_file_max_lifetime_render' ), 
+			'Blk', 
+			'blk_import_section'
+		);
+		add_settings_field(
+			'blk_cron_interval', 
+			'Cron interval', 
+			array( $this, 'blk_cron_interval_render' ), 
+			'Blk', 
+			'blk_import_section'
+		);
+		add_settings_field(
+			'blk_query_type', 
+			'Query type', 
+			array( $this, 'blk_query_type_render' ), 
+			'Blk', 
+			'blk_import_section'
+		);
 	}
 
 	public function blk_import_section_callback() { 
@@ -62,7 +83,7 @@ class BlkSettingsPage {
 	}
 
 	public function blk_categories_field_render() {
-		$blk_settings = get_option('blk_settings');
+		$blk_settings = get_option( 'blk_settings' );
 		?>
 		<textarea id='blk_categories_to_ignore' name='blk_settings[blk_categories_to_ignore]' rows='6'  style="width: 100%;"><?php echo $blk_settings['blk_categories_to_ignore'] ?? ''; ?></textarea><br>
 		<p>A comma-separated list of category IDs to ignore.</p>
@@ -70,10 +91,38 @@ class BlkSettingsPage {
 	}
 
 	public function blk_skus_field_render() {
-		$blk_settings = get_option('blk_settings');
+		$blk_settings = get_option( 'blk_settings' );
 		?>
 		<textarea id='blk_skus_to_ignore' name='blk_settings[blk_skus_to_ignore]' rows='6' style="width: 100%;"><?php echo $blk_settings['blk_skus_to_ignore'] ?? ''; ?></textarea><br>
 		<p>A comma-separated list of SKUs to ignore.</p>
+		<?php
+	}
+
+	public function blk_lock_file_max_lifetime_render() {
+		$blk_settings = get_option( 'blk_settings' );
+		?>
+		<input id='blk_sblk_lock_file_max_lifetime'  type="number" name='blk_settings[blk_lock_file_max_lifetime]' value="<?php echo $blk_settings['blk_lock_file_max_lifetime'] ?? 10; ?>"><br>
+		<p>Recommended value is 10–30 minutes.</p>
+		<?php
+	}
+
+	public function blk_cron_interval_render() {
+		$blk_settings = get_option( 'blk_settings' );
+		?>
+		<input id='blk_blk_corn_interval'  type="number" name='blk_settings[blk_corn_interval]' value="<?php echo $blk_settings['blk_cron_interval'] ?? 60; ?>"><br>
+		<p>Recommended value is 20–60 minutes.</p>
+		<?php
+	}
+
+	public function blk_query_type_render() {
+		$blk_settings = get_option( 'blk_settings' );
+		$query_type = isset( $blk_settings['blk_query_type'] ) ? $blk_settings['blk_query_type'] : 'all';
+		?>
+		<select id='blk_blk_query_type' name='blk_settings[blk_query_type]'>
+			<option value='all' <?php selected( $query_type, 'all' ); ?>>All</option>
+			<option value='chunks' <?php selected( $query_type, 'chunks' ); ?>>Chunks</option>
+		</select><br>
+		<p>Use 'Chunks' for slow servers.</p>
 		<?php
 	}
 

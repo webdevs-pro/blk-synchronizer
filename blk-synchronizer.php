@@ -7,7 +7,7 @@
  * Plugin Name:   BaseLinker Synchronizer Extended
  * Plugin URI:    https://github.com/webdevs-pro/blk-synchronizer
  * Description:   Synchronization of BaseLinker and WooCommerce
- * Version:       2.7
+ * Version:       2.8
  * Author:        Alex Shram & Alex Ishchenko
  * Author URI:    https://afisza.com/
  */
@@ -64,7 +64,7 @@ function blk_is_import_locked() {
  */
 function blk_create_import_lock() {
     $lock_file = plugin_dir_path(__FILE__) . '.import-lock';
-    file_put_contents($lock_file, 'locked');
+    file_put_contents( $lock_file, date_i18n('Y-m-d H:i:s') );
 }
 
 /**
@@ -110,7 +110,7 @@ function blk_is_stop_import() {
  */
 function blk_create_import_stop() {
     $lock_file = plugin_dir_path(__FILE__) . '.import-stop';
-    file_put_contents($lock_file, 'locked');
+    file_put_contents( $lock_file, date_i18n('Y-m-d H:i:s') );
 }
 
 /**

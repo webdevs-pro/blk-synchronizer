@@ -142,16 +142,24 @@ class BlkSynchronizer {
      * @param $catId
      * @return void
      */
-    public function createProduct($blk_product, $catId) {
+    public function createProduct( $blk_product, $catId ) {
         $wcProduct = new WC_Product_Simple();
 
+        $existing_id = wc_get_product_id_by_sku( $blk_product['sku'] );
+        if ( $existing_id ) {
+            $logMessage = 'An attempt was made to add a product with an existing SKU ' . $blk_product['sku'];
+            blk_synk_log( $logMessage, $this->synk_log_file_date );
+            wp_delete_post( $existing_id, true );
+        }
+
+        $wcProduct->set_sku( $blk_product['sku'] );
         $wcProduct->set_name( $blk_product['name'] );
         $wcProduct->set_regular_price( $blk_product['price_brutto'] );
         $wcProduct->set_weight( $blk_product['weight'] );
         $wcProduct->set_manage_stock( true );
         $wcProduct->set_stock_quantity( $blk_product['quantity'] );
         // $wcProduct->set_category_ids( [$catId] );
-        $wcProduct->set_description( $blk_product['description'] );
+        $wcProduct->set_description( isset( $blk_product['description'] ) ? $blk_product['description'] : '' );
 
         try {
             if ( ! empty($blk_product['tax_rate'] ) ) {
@@ -177,7 +185,6 @@ class BlkSynchronizer {
             blk_error_log( $error_message );
         }
 
-        $wcProduct->set_sku( $blk_product['sku'] );
         $wcProduct->save();
 
         $wc_product_id = $wcProduct->get_id();
@@ -395,40 +402,46 @@ class BlkSynchronizer {
 
 
     private function products_to_json() {
-        // $args = [
-        //     'limit' => -1, // Retrieve all products
-        //     'status' => 'publish', // Get only published products
-        // ];
-    
-        // $query = new WC_Product_Query($args);
-        // $products = $query->get_products();
 
-        $formatted_products = [];
+		$blk_settings = get_option( 'blk_settings' );
+		$query_type = isset( $blk_settings['blk_query_type'] ) ? $blk_settings['blk_query_type'] : 'all';
 
-        $per_page = 100;
-        $page = 1; 
-        $products = [];
-        
-        do {
+        if ( $query_type == 'all' ) {
             $args = [
-                'limit'  => $per_page,
-                'status' => 'publish',
-                'page'   => $page,
+                'limit' => -1, // Retrieve all products
+                'status' => 'publish', // Get only published products
             ];
         
             $query = new WC_Product_Query($args);
-            $current_iteraction_products = $query->get_products();
-        
-            if ( ! empty( $current_iteraction_products ) ) {
-                $products = array_merge( $products, $current_iteraction_products );
-                $page++;
-            } else {
-                break; // Exit loop if no products are found
-            }
+            $products = $query->get_products();
+        } elseif ( $query_type == 'chunks' ) {
+            $per_page = 100;
+            $page = 1; 
+            $products = [];
+            
+            do {
+                $args = [
+                    'limit'  => $per_page,
+                    'status' => 'publish',
+                    'page'   => $page,
+                ];
+            
+                $query = new WC_Product_Query($args);
+                $current_iteraction_products = $query->get_products();
+            
+                if ( ! empty( $current_iteraction_products ) ) {
+                    $products = array_merge( $products, $current_iteraction_products );
+                    $page++;
+                } else {
+                    break; // Exit loop if no products are found
+                }
+            } while ( true );
+        }
 
-            blk_error_log( 'boom' );
 
-        } while ( true );
+        $formatted_products = [];
+
+        // error_log( "products count\n" . print_r( count( $products ), true ) . "\n" );
     
         foreach ($products as $product) {
             $formatted_product = [
@@ -470,10 +483,10 @@ class BlkSynchronizer {
             $formatted_products[] = $formatted_product;
         }
     
-        // Sort the products array by product_id
-        usort( $formatted_products, function( $a, $b ) {
-            return $a['product_id'] - $b['product_id'];
-        } );
+        // // Sort the products array by product_id
+        // usort( $formatted_products, function( $a, $b ) {
+        //     return $a['product_id'] - $b['product_id'];
+        // } );
     
         $json_data = json_encode( $formatted_products, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT );
         file_put_contents( BLK_SYNCHRONIZER_PATH . 'old-products.json', $json_data );
