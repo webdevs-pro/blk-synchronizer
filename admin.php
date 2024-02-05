@@ -109,7 +109,7 @@ class BlkSettingsPage {
 	public function blk_cron_interval_render() {
 		$blk_settings = get_option( 'blk_settings' );
 		?>
-		<input id='blk_blk_corn_interval'  type="number" name='blk_settings[blk_corn_interval]' value="<?php echo $blk_settings['blk_cron_interval'] ?? 60; ?>"><br>
+		<input id='blk_cron_interval'  type="number" name='blk_settings[blk_cron_interval]' value="<?php echo $blk_settings['blk_cron_interval'] ?? 60; ?>"><br>
 		<p>Recommended value is 20–60 minutes.</p>
 		<?php
 	}
