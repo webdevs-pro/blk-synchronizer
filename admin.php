@@ -7,14 +7,30 @@ class BlkSettingsPage {
 	}
 
 	public function add_admin_menu() {
-		add_menu_page(
+		$page = add_menu_page(
 			'BL Synk', 
 			'BL Synk', 
 			'manage_options', 
 			'bs-settings-page', 
 			array($this, 'settings_page')
 		);
+
+      add_action( 'admin_print_styles-' . $page, array( $this, 'print_scripts_and_styles' ) );
+
 	}
+
+   public function print_scripts_and_styles() {
+      wp_enqueue_script( 'blk-prism', BLK_SYNCHRONIZER_DIR_URL .'/assets/prism.js', array(), BLK_PLUGIN_VERSION, true );
+      wp_enqueue_script( 'blk-admin-page', BLK_SYNCHRONIZER_DIR_URL .'/assets/admin-page.js', array( 'jquery' ), BLK_PLUGIN_VERSION, true );
+      wp_enqueue_style( 'blk-prism', BLK_SYNCHRONIZER_DIR_URL .'/assets/prism.css', array(), BLK_PLUGIN_VERSION );
+      wp_enqueue_style( 'blk-admin-page', BLK_SYNCHRONIZER_DIR_URL .'/assets/admin-page.css', array(), BLK_PLUGIN_VERSION );
+
+		// Localize the script with necessary data
+		$script_data = array(
+			'logFilePath' => BLK_SYNCHRONIZER_LOGS_URL // Assuming this variable holds the URL path you want to pass
+		);
+		wp_localize_script( 'blk-admin-page', 'blkAdminPageData', $script_data );
+   }
 
 	public function init_settings() {
 		register_setting('Blk', 'blk_settings');
@@ -170,60 +186,11 @@ class BlkSettingsPage {
 			echo '<button id="blk-start-import" class="button button-primary disabled">Start import</button>';
 		} else {
 			echo '<button id="blk-start-import" class="button button-primary">Start import</button>';
-		} ?>
+		} 
+		?>
 		<button id="blk-stop-import" class="button button-primary" style="background-color: #dc3232; border-color: #dc3232; color: white;">Stop import</button>
-
-		<script type="text/javascript">
-			jQuery(document).ready(function ($) {
-
-				$('#blk-start-import').click(function(e) {
-					e.preventDefault();
-
-					var $startButton = $(this);
-					$startButton.addClass('disabled');
-
-					$.ajax({
-						url: '/?action=blkSynchronizer&method=synchronize',
-						type: 'POST',
-						success: function(data) {
-								console.log('import complete'); // Handle the response data
-								$startButton.removeClass('disabled');
-						},
-						error: function(jqXHR, textStatus, errorThrown) {
-								console.error('There has been a problem with your AJAX operation:', textStatus, errorThrown);
-								$startButton.removeClass('disabled');
-								// Handle errors here
-						}
-					});
-				});
-
-
-				$('#blk-stop-import').click(function (e) {
-					e.preventDefault();
-
-					var data = {
-							action: 'blk_stop_import',
-					};
-
-					$.ajax({
-							url: ajaxurl,
-							type: 'POST',
-							data: data,
-							beforeSend: function (xhr) {
-								$('#blk-stop-import').addClass('disabled');
-								//  $('#frymo_ajax_result').html('&nbsp;');
-							},
-							success: function (response) {
-								$('#blk-stop-import').removeClass('disabled');
-								//  $('#frymo_ajax_result').html(response);
-								console.log(response);
-							}
-					});
-				});
-				
-			});
-		</script>
 		<?php
+
 		$log_directory = BLK_SYNCHRONIZER_LOGS_PATH;
 		$sorted_files = $this->get_sorted_log_files( $log_directory );
 
@@ -235,75 +202,9 @@ class BlkSettingsPage {
 			echo '</select>';
 			echo '&nbsp;&nbsp;<a href="#" id="blk-log-reload">Reload</a><br>';
 
-			echo '<pre id="blk-log"></pre>';
+			echo '<div id="blk-log"></div>';
 
 		echo '</div>';
-
-		?>
-		<style>
-			.wrap .notice {
-				display: none;
-			}
-			.blk-log-wrapper {
-				margin-top: 20px;
-			}
-			#blk-log {
-				background-color: #fff;
-				padding: 10px;
-				height: 400px;
-				overflow-y: auto;
-				border: 1px solid #ccc;
-				overscroll-behavior: contain;
-			}
-			#blk-log-reload.disabled {
-				color: gray;        /* Change the text color to gray or any other color */
-				pointer-events: none; /* This prevents the link from being clickable */
-				cursor: default; 
-			}
-		</style>
-		<script>
-			jQuery(document).ready(function($) {
-				// Function to load log file content
-				function loadLogFile(filePath) {
-					$('#blk-log-file-select').prop('disabled', true);
-					$('#blk-log-reload').addClass('disabled');
-					$('#blk-log-reload').blur();
-
-					// Append a timestamp to the file path to prevent caching
-					var cacheBuster = "?t=" + new Date().getTime();
-					$.get(filePath + cacheBuster, function(data) {
-						$('#blk-log').text(data).scrollTop($('#blk-log')[0].scrollHeight);
-					});
-
-					setTimeout(function() {
-						$('#blk-log-file-select').prop('disabled', false);
-						$('#blk-log-reload').removeClass('disabled');
-					}, 500);
-				}
-
-				var currentFile = $('#blk-log-file-select').val();
-				var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_LOGS_URL ); ?>' + currentFile;
-				loadLogFile(logFilePath);
-
-				// Handle change event for the log file selection
-				$('#blk-log-file-select').change(function() {
-					var selectedFile = $(this).val();
-					var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_LOGS_URL ); ?>' + selectedFile;
-					loadLogFile(logFilePath);
-				});
-
-				// Handle click event for the "Reload" link
-				$('#blk-log-reload').click(function(e) {
-					e.preventDefault();
-					var currentFile = $('#blk-log-file-select').val();
-					var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_LOGS_URL ); ?>' + currentFile;
-					loadLogFile(logFilePath);
-				});
-			});
-		</script>
-		<?php
-
-
 	}
 
 

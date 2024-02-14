@@ -1,0 +1,33 @@
+.wrap > .updated,
+.wrap > .notice {
+   display: none;
+}
+.blk-log-wrapper {
+   margin-top: 20px;
+}
+#blk-log {
+   margin-top: 20px;
+   position: relative;
+   border: 1px solid #ccc;
+   height: 420px;
+}
+#blk-log pre {
+   margin: 0;
+   overflow-y: auto;
+   overflow-x: auto;
+   overscroll-behavior: contain;
+   position: absolute;
+   top: 0;
+   left: 0;
+   right: 0;
+   bottom: 0;
+}
+}
+#blk-log-reload.disabled {
+   color: gray;        /* Change the text color to gray or any other color */
+   pointer-events: none; /* This prevents the link from being clickable */
+   cursor: default; 
+}
+#blk-log pre code {
+   padding: 3px 0;
+}
