@@ -59,12 +59,13 @@ jQuery(document).ready(function($) {
       $.get(filePath + cacheBuster, function(response) {
       
       
-          // Use 'plaintext' for generic highlighting without specific syntax rules
-          var new_code = Prism.highlight(response, Prism.languages.log, 'log');
+         // Use 'plaintext' for generic highlighting without specific syntax rules
+         var new_code = Prism.highlight(response, Prism.languages.log, 'log');
       
       
-          // Ensure your <pre> and <code> tags use a language class that matches what you've passed to Prism.highlight
-          $('#blk-log').html(`<pre class="language-log"><code>${new_code}</code></pre>`).scrollTop($('#blk-log')[0].scrollHeight);
+         // Ensure your <pre> and <code> tags use a language class that matches what you've passed to Prism.highlight
+         $('#blk-log').html(`<pre class="language-log"><code>${new_code}</code></pre>`);
+         $('#blk-log pre').scrollTop($('#blk-log pre')[0].scrollHeight)
       });
 
       setTimeout(function() {
@@ -89,7 +90,7 @@ jQuery(document).ready(function($) {
    $('#blk-log-reload').click(function(e) {
       e.preventDefault();
       var currentFile = $('#blk-log-file-select').val();
-      var logFilePath = '<?php echo esc_js( BLK_SYNCHRONIZER_LOGS_URL ); ?>' + currentFile;
+      var logFilePath = blkAdminPageData.logFilePath + currentFile;
       loadLogFile(logFilePath);
    });
 

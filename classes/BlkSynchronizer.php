@@ -11,8 +11,8 @@ class BlkSynchronizer {
      */
     public function startSynchronize() {
 
-        $max_execution_time = ini_get('max_execution_time');
-        blk_error_log( $max_execution_time );
+        // $max_execution_time = ini_get('max_execution_time');
+        // blk_error_log( $max_execution_time );
 
 
         set_time_limit( 0 );

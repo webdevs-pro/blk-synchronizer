@@ -54,6 +54,7 @@ class BlkHooks {
      * Initiates synchronization.
      */
     public function startBlkSynchronize() {
+        $this->delete_old_logs();
         $this->bs->startSynchronize();
     }
 
@@ -77,6 +78,49 @@ class BlkHooks {
      */
     private function get_schedule_name() {
         return 'blk_custom_interval';
+    }
+
+
+    /**
+     * Deletes log files older than 5 days in the BLK_SYNCHRONIZER_LOGS_PATH directory.
+     */
+    public function delete_old_logs() {
+        // Ensure the constant is defined before proceeding.
+        if ( ! defined( 'BLK_SYNCHRONIZER_LOGS_PATH' ) ) {
+            return;
+        }
+
+        $log_files_path = trailingslashit( BLK_SYNCHRONIZER_LOGS_PATH ) . '*.log';
+        $log_files      = glob( $log_files_path );
+        if ( false === $log_files ) {
+            // Glob may return false on error.
+            return;
+        }
+
+        $age_threshold = 5 * DAY_IN_SECONDS; // WordPress constant for time calculations.
+        $now           = time();
+        $deleted_files = array();
+
+        foreach ( $log_files as $log_file ) {
+            // Verify the file exists before attempting to get its modification time.
+            if ( ! file_exists( $log_file ) ) {
+                continue;
+            }
+
+            $file_mod_time = filemtime( $log_file );
+            if ( false !== $file_mod_time && ( $now - $file_mod_time ) > $age_threshold ) {
+                // Attempt to delete the file and check for success.
+                if ( ! unlink( $log_file ) ) {
+                    // Log error or take necessary action if file deletion fails.
+                } else {
+                    $deleted_files[] = basename( $log_file );
+                }
+            }
+        }
+
+        if ( ! empty( $deleted_files ) ) {
+            blk_debug_log( 'Old log files deleted: ' . print_r( $deleted_files, true ) );
+        }
     }
 }
 
