@@ -3,6 +3,8 @@
 class BlkSynchronizer {
 
     private $synk_log_file_date;
+    private $ignored_products = 0;
+    private $deleted_ignored = 0;
 
     /**
      * @return void
@@ -59,6 +61,10 @@ class BlkSynchronizer {
         $this->remove_products( $products_to_delete );
         $this->update_products( $products_to_update );
         $this->add_new_products( $products_to_add );
+
+        blk_debug_log( 'Ignored products: ' . $this->ignored_products );
+        blk_debug_log( 'Ignored products deleted: ' . $this->deleted_ignored );
+
 
         $end_time_2 = microtime( true );
         $time_2 = number_format( ( $end_time_2 - $start_time ), 1 );
@@ -204,9 +210,11 @@ class BlkSynchronizer {
                 if ( $product_id ) {
                     wp_delete_post( $product_id, true );
                     blk_synk_log( 'Product ' . $product['sku'] . ' skipped and deleted, it is on the ignore list.', $this->synk_log_file_date );
+                    $this->deleted_ignored++;
                 } else {
                     blk_synk_log( 'Product ' . $product['sku'] . ' skipped, it is on the ignore list.', $this->synk_log_file_date );
                 }
+                $this->ignored_products++;
                 return false; // Skip this product.
             }
             return true; // Keep this product.
@@ -371,6 +379,7 @@ class BlkSynchronizer {
             if ( $this->check_for_skip( $blk_product ) ) {
                 wp_delete_post( $wc_product_id, true );
                 blk_debug_log( 'Product ' . $blk_product_sku . ' deleted. It is on the ignore list.' );
+                $this->deleted_ignored++;
                 continue;
             }
 
