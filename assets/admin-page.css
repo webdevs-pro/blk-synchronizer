@@ -1,5 +1,6 @@
 .wrap > .updated,
-.wrap > .notice {
+.wrap > .notice,
+.loginpress-review-notice {
    display: none;
 }
 .blk-log-wrapper {

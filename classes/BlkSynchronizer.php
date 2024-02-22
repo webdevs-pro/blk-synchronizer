@@ -42,9 +42,6 @@ class BlkSynchronizer {
         $new_json = file_get_contents( BLK_SYNCHRONIZER_PATH . 'new-products.json' );
         $new_products = json_decode( $new_json, true );
 
-        // $products_to_add = $this->products_added( $old_products, $new_products );
-        // $products_to_delete = $this->products_removed( $old_products, $new_products );
-        // $products_to_update = $this->products_changed( $old_products, $new_products );
 
         $products_to_add = $this->find_added_products( $old_products, $new_products );
         $products_to_delete = $this->find_removed_products( $old_products, $new_products );
@@ -58,9 +55,6 @@ class BlkSynchronizer {
         blk_debug_log( 'Products to remove: ' . count( $products_to_delete ) );
         blk_debug_log( 'Products to update: ' . count( $products_to_update ) );
 
-        // error_log( "products_to_add\n" . print_r( $products_to_add, true ) . "\n" );
-        // error_log( "products_to_delete\n" . print_r( $products_to_delete, true ) . "\n" );
-        // error_log( "products_to_update\n" . print_r( $products_to_update, true ) . "\n" );
 
         $this->remove_products( $products_to_delete );
         $this->update_products( $products_to_update );
@@ -113,27 +107,6 @@ class BlkSynchronizer {
         }
     }
 
-
-
-
-    function products_added( $old_array, $new_array ) {
-        $old_ids = array_column( $old_array, 'product_id' );
-    
-        $added_products = array_filter( $new_array, function ( $blk_product ) use ( $old_ids ) {
-            return !in_array( $blk_product['product_id'], $old_ids ) && !$this->check_for_skip( $blk_product );
-        } );
-    
-        return array_values( $added_products ); // Re-indexing array
-    }
-    
-    function products_removed( $old_array, $new_array ) {
-        $new_ids = array_column( $new_array, 'product_id' );
-        $removed_products = array_filter( $old_array, function ( $blk_product ) use ( $new_ids ) {
-            return !in_array( $blk_product['product_id'], $new_ids );
-        });
-    
-        return array_values( $removed_products ); // Re-indexing array
-    }
 
 
 
@@ -213,12 +186,41 @@ class BlkSynchronizer {
 
 
 
+    // function find_added_products( $old_products, $new_products ) {
+    //     $old_skus = array_column( $old_products, 'sku' );
+    //     return array_filter( $new_products, function( $product ) use ( $old_skus ) {
+    //         return ! in_array( $product['sku'], $old_skus, true );
+    //     } );
+    // }
+
+
     function find_added_products( $old_products, $new_products ) {
+        // Filter out products that should be skipped.
+        $filtered_new_products = array_filter( $new_products, function( $product ) {
+            // Assuming $this->check_for_skip( $product ) is accessible in this context.
+            if ( $this->check_for_skip( $product ) ) {
+                // We check whether there is a product on the website that should be ignored, and if so, we remove it.
+                $product_id = wc_get_product_id_by_sku( $product['sku'] );
+                if ( $product_id ) {
+                    wp_delete_post( $product_id, true );
+                    blk_synk_log( 'Product ' . $product['sku'] . ' skipped and deleted, it is on the ignore list.', $this->synk_log_file_date );
+                } else {
+                    blk_synk_log( 'Product ' . $product['sku'] . ' skipped, it is on the ignore list.', $this->synk_log_file_date );
+                }
+                return false; // Skip this product.
+            }
+            return true; // Keep this product.
+        });
+    
+        // Get SKUs from old products to compare.
         $old_skus = array_column( $old_products, 'sku' );
-        return array_filter( $new_products, function( $product ) use ( $old_skus ) {
+    
+        // Filter out products that are not in the old products list.
+        return array_filter( $filtered_new_products, function( $product ) use ( $old_skus ) {
             return ! in_array( $product['sku'], $old_skus, true );
-        } );
+        });
     }
+    
     
     function find_removed_products( $old_products, $new_products ) {
         $new_skus = array_column( $new_products, 'sku' );
@@ -280,11 +282,14 @@ class BlkSynchronizer {
 
     private function check_for_skip( $blk_product ) {
         $options = get_option( 'blk_settings' );
-        $categories_to_skip_string = $options['blk_categories_to_ignore'] ?? '';
-        $ids_of_categories_to_skip = explode( ',', $categories_to_skip_string );
 
-        $skus_to_skip_string = $options['blk_skus_to_ignore'] ?? '';
+        // Remove any spaces and trailing commas before exploding
+        $categories_to_skip_string = isset( $options['blk_categories_to_ignore'] ) ? trim( $options['blk_categories_to_ignore'], " ,\t\n\r\0\x0B" ) : '';
+        $ids_of_categories_to_skip = explode( ',', $categories_to_skip_string );
+        
+        $skus_to_skip_string = isset( $options['blk_skus_to_ignore'] ) ? trim( $options['blk_skus_to_ignore'], " ,\t\n\r\0\x0B" ) : '';
         $skus_to_skip = explode( ',', $skus_to_skip_string );
+
 
         if ( in_array( $blk_product['category_id'], $ids_of_categories_to_skip ) ) {
             // blk_synk_log( ' Product "' . $blk_product['name'] . '" ignored by BaseLinker category ID (' . $blk_product['category_id'] . ')', $this->synk_log_file_date );
@@ -312,6 +317,10 @@ class BlkSynchronizer {
                 die();
             }
 
+            // if ( $this->check_for_skip( $blk_product ) ) {
+            //     blk_debug_log( 'Product ' . $blk_product['sku'] . ' skipped, it is on the ignore list.' );
+            //     continue;
+            // }
 
             $this->createProduct( $blk_product, 0 );
         }
