@@ -71,6 +71,13 @@ class BlkSettingsPage {
 			'blk_import_section'
 		);
 		add_settings_field(
+			'blk_synk_type', 
+			'Synk type', 
+			array( $this, 'blk_synk_type_render' ), 
+			'Blk', 
+			'blk_import_section'
+		);
+		add_settings_field(
 			'blk_cron_interval', 
 			'Cron interval', 
 			array( $this, 'blk_cron_interval_render' ), 
@@ -119,6 +126,17 @@ class BlkSettingsPage {
 		?>
 		<input id='blk_sblk_lock_file_max_lifetime'  type="number" name='blk_settings[blk_lock_file_max_lifetime]' value="<?php echo $blk_settings['blk_lock_file_max_lifetime'] ?? 10; ?>"><br>
 		<p>Recommended value is 10–30 minutes.</p>
+		<?php
+	}
+
+	public function blk_synk_type_render() {
+		$blk_settings = get_option( 'blk_settings' );
+		$query_type = isset( $blk_settings['blk_synk_type'] ) ? $blk_settings['blk_synk_type'] : 'manual';
+		?>
+		<select id='blk_blk_query_type' name='blk_settings[blk_query_type]'>
+			<option value='manual' <?php selected( $query_type, 'manual' ); ?>>Manual</option>
+			<option value='cron' <?php selected( $query_type, 'cron' ); ?>>Cron</option>
+		</select><br>
 		<?php
 	}
 
